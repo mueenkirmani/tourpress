@@ -1,0 +1,8 @@
+services:
+  tourpress:
+    image: tourpress:latest   
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped

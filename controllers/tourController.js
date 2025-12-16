@@ -26,27 +26,44 @@ export default function tourController() {
 			next();
 		},
 		// Get all tours
-		getAllTours: (req, res) => {
-			// jsend format
-			res.status(200).json({
-				status: 'success', //success or fail or error
-				data: {
-					tours: toursData,
-				},
-			});
+		getAllTours: async (req, res) => {
+			try {
+				const tours = await Tour.find();
+
+				// jsend format
+				res.status(200).json({
+					status: 'success', //success or fail or error
+					data: {
+						tours,
+					},
+				});
+			} catch (err) {
+				res.status(404).json({
+					status: 'fail',
+					message: err,
+				});
+			}
 		},
 		// Create a tour
-		createTour: (req, res) => {
-			const { name, price, rating, summary } = req.body;
+		createTour: async (req, res) => {
+			try {
+				const { name, price, rating, summary, duration } = req.body;
 
-			const newTour = Tour.create({ name, price, rating, summary });
+				const newTour = await Tour.create({ name, price, rating, summary, duration });
+				console.log('🚀 ~ tourController ~ newTour:', newTour);
 
-			res.status(201).json({
-				status: 'success',
-				data: {
-					tour: newTour,
-				},
-			});
+				res.status(201).json({
+					status: 'success',
+					data: {
+						tour: newTour,
+					},
+				});
+			} catch (err) {
+				res.status(400).json({
+					status: 'fail',
+					message: err,
+				});
+			}
 		},
 		// Get a tour
 		getTour: (req, res) => {

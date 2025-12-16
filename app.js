@@ -9,9 +9,9 @@ const app = express();
 app.use(express.json());
 
 console.log('process', process.env.NODE_ENV);
-// if (process.env.NODE_ENV === 'development') {
-app.use(morgan('dev'));
-// }
+if (process.env.NODE_ENV === 'development') {
+	app.use(morgan('dev'));
+}
 
 // app.get('/', (req, res) => {
 // 	console.log(req.body);

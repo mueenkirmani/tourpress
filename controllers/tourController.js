@@ -1,4 +1,5 @@
 import fs from 'fs';
+import Tour from '../models/tourModel.js';
 
 const toursData = JSON.parse(fs.readFileSync('./data/tours.json', 'utf-8'));
 
@@ -36,20 +37,14 @@ export default function tourController() {
 		},
 		// Create a tour
 		createTour: (req, res) => {
-			const { id, name, duration } = req.body;
+			const { name, price, rating, summary } = req.body;
 
-			toursData.push({ id, name, duration });
-
-			fs.writeFile('./data/tours.json', JSON.stringify(toursData), (err) => {
-				if (err) {
-					console.log(err);
-				}
-			});
+			const newTour = Tour.create({ name, price, rating, summary });
 
 			res.status(201).json({
 				status: 'success',
 				data: {
-					tours: req.body,
+					tour: newTour,
 				},
 			});
 		},

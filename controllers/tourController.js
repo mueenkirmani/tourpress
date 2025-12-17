@@ -1,30 +1,7 @@
-import fs from 'fs';
 import Tour from '../models/tourModel.js';
-
-const toursData = JSON.parse(fs.readFileSync('./data/tours.json', 'utf-8'));
-
-// tourController
-// REST FULL API's
-/*
-1. Segregation based on resources
-2. use HTTP methods
-*/
 
 export default function tourController() {
 	return {
-		checkIdExists: (req, res, next) => {
-			const id = req.params.id * 1;
-			const tour = toursData.find((tour) => tour.id === id);
-
-			// jsend format
-			if (!tour) {
-				return res.status(404).json({
-					status: 'fail', // success or fail or error
-					message: 'The tour id does not exist',
-				});
-			}
-			next();
-		},
 		// Get all tours
 		getAllTours: async (req, res) => {
 			try {
@@ -33,6 +10,7 @@ export default function tourController() {
 				// jsend format
 				res.status(200).json({
 					status: 'success', //success or fail or error
+					results: tours.length,
 					data: {
 						tours,
 					},
@@ -50,7 +28,6 @@ export default function tourController() {
 				const { name, price, rating, summary, duration } = req.body;
 
 				const newTour = await Tour.create({ name, price, rating, summary, duration });
-				console.log('🚀 ~ tourController ~ newTour:', newTour);
 
 				res.status(201).json({
 					status: 'success',
@@ -66,51 +43,96 @@ export default function tourController() {
 			}
 		},
 		// Get a tour
-		getTour: (req, res) => {
-			const id = req.params.id * 1;
+		getTour: async (req, res) => {
+			try {
+				const id = req.params.id;
 
-			const tour = toursData.find((tour) => tour.id === id);
+				const tour = await Tour.findById(id);
 
-			res.status(200).json({
-				status: 'success',
-				data: {
-					tour,
-				},
-			});
-		},
-		// Update a tour
-		updateTour: (req, res) => {
-			const id = req.params.id * 1;
+				if (!tour) {
+					return res.status(404).json({
+						status: 'fail',
+						message: 'The tour id does not exist',
+					});
+				}
 
-			const { name, duration } = req.body;
-
-			const tour = toursData.find((tour) => tour.id === id);
-
-			if (!name) {
+				res.status(200).json({
+					status: 'success',
+					data: {
+						tour,
+					},
+				});
+			} catch (err) {
 				res.status(400).json({
 					status: 'fail',
-					message: 'Please provide a name',
+					message: err,
 				});
 			}
-
-			res.status(200).json({
-				status: 'success',
-				data: {
-					tour,
-				},
-			});
 		},
-		deleteTour: (req, res) => {
-			const id = req.params.id * 1;
+		// Update a tour
+		updateTour: async (req, res) => {
+			try {
+				const id = req.params.id;
 
-			const tour = toursData.find((tour) => tour.id === id);
+				const { name } = req.body;
 
-			res.status(204).json({
-				status: 'success',
-				data: {
-					tour,
-				},
-			});
+				if (!name) {
+					res.status(400).json({
+						status: 'fail',
+						message: 'Please provide a name',
+					});
+				}
+
+				const tour = await Tour.findByIdAndUpdate(
+					id,
+					{
+						name,
+					},
+					{
+						new: true,
+					},
+				);
+
+				res.status(200).json({
+					status: 'success',
+					data: {
+						tour,
+					},
+				});
+			} catch (err) {
+				res.status(400).json({
+					status: 'fail',
+					message: err,
+				});
+			}
+		},
+		deleteTour: async (req, res) => {
+			try {
+				const id = req.params.id;
+
+				const tourExists = await Tour.findById(id);
+
+				if (!tourExists) {
+					return res.status(404).json({
+						status: 'fail',
+						message: 'The tour id does not exist',
+					});
+				}
+
+				const tour = await Tour.deleteOne({ _id: id });
+
+				res.status(204).json({
+					status: 'success',
+					data: {
+						tour,
+					},
+				});
+			} catch (err) {
+				res.status(400).json({
+					status: 'fail',
+					message: err,
+				});
+			}
 		},
 	};
 }

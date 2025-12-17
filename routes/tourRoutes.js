@@ -5,8 +5,6 @@ const tourRouter = express.Router();
 
 tourRouter.route('/').get(tourController().getAllTours).post(tourController().createTour);
 
-tourRouter.param('id', tourController().checkIdExists);
-
 tourRouter
 	.route('/:id')
 	.get(tourController().getTour)

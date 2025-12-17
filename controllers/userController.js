@@ -1,92 +1,138 @@
-import fs from 'fs';
+import User from '../models/userModel.js';
 
-const toursData = JSON.parse(fs.readFileSync('./data/tours.json', 'utf-8'));
+export default function userController() {
+	return {
+		// Get all Users
+		getAllUsers: async (_req, res) => {
+			try {
+				const users = await User.find();
 
-export const getAllUsers = (req, res) => {
-	// jsend format
-	res.status(200).json({
-		status: 'success', //success or fail or error
-		data: {
-			tours: toursData,
+				res.status(200).json({
+					status: 'success',
+					results: users.length,
+					data: {
+						users,
+					},
+				});
+			} catch (err) {
+				res.status(404).json({
+					status: 'fail',
+					message: err,
+				});
+			}
 		},
-	});
-};
+		// Create a User
+		createUser: async (req, res) => {
+			try {
+				const { name, email, password } = req.body;
 
-export const createUser = (req, res) => {
-	const { id, name, duration } = req.body;
+				const newUser = await User.create({ name, email, password });
 
-	toursData.push({ id, name, duration });
-
-	fs.writeFile('./data/tours.json', JSON.stringify(toursData), (err) => {
-		if (err) {
-			console.log(err);
-		}
-	});
-
-	res.status(201).json({
-		status: 'success',
-		data: {
-			tours: req.body,
+				res.status(201).json({
+					status: 'success',
+					data: {
+						user: newUser,
+					},
+				});
+			} catch (err) {
+				res.status(400).json({
+					status: 'fail',
+					message: err,
+				});
+			}
 		},
-	});
-};
+		// Get a User
+		getUser: async (req, res) => {
+			try {
+				const id = req.params.id;
 
-export const getUser = (req, res) => {
-	const id = req.params.id * 1;
+				const user = await User.findById(id);
 
-	const tour = toursData.find((tour) => tour.id === id);
+				if (!user) {
+					return res.status(404).json({
+						status: 'fail',
+						message: 'The user id does not exist',
+					});
+				}
 
-	res.status(200).json({
-		status: 'success',
-		data: {
-			tour,
+				res.status(200).json({
+					status: 'success',
+					data: {
+						User,
+					},
+				});
+			} catch (err) {
+				res.status(400).json({
+					status: 'fail',
+					message: err,
+				});
+			}
 		},
-	});
-};
+		// Update a User
+		updateUser: async (req, res) => {
+			try {
+				const id = req.params.id;
 
-export const updateUser = (req, res) => {
-	const id = req.params.id * 1;
+				const { name } = req.body;
 
-	const { name, duration } = req.body;
+				if (!name) {
+					res.status(400).json({
+						status: 'fail',
+						message: 'Please provide a name',
+					});
+				}
 
-	const tour = toursData.find((tour) => tour.id === id);
+				const user = await User.findByIdAndUpdate(
+					id,
+					{
+						name,
+					},
+					{
+						new: true,
+					},
+				);
 
-	if (!name) {
-		res.status(400).json({
-			status: 'fail',
-			message: 'Please provide a name',
-		});
-	}
-
-	if (!tour) {
-		return res.status(404).json({
-			status: 'fail',
-			message: 'The tour id does not exist',
-		});
-	}
-	res.status(200).json({
-		status: 'success',
-		data: {
-			tour,
+				res.status(200).json({
+					status: 'success',
+					data: {
+						user,
+					},
+				});
+			} catch (err) {
+				res.status(400).json({
+					status: 'fail',
+					message: err,
+				});
+			}
 		},
-	});
-};
+		// Delete a user
+		deleteUser: async (req, res) => {
+			try {
+				const id = req.params.id;
 
-export const deleteUser = (req, res) => {
-	const id = req.params.id * 1;
+				const userExists = await User.findById(id);
 
-	const tour = toursData.find((tour) => tour.id === id);
+				if (!userExists) {
+					return res.status(404).json({
+						status: 'fail',
+						message: 'The user id does not exist',
+					});
+				}
 
-	if (!tour) {
-		return res.status(404).json({
-			status: 'fail',
-			message: 'The tour id does not exist',
-		});
-	}
-	res.status(204).json({
-		status: 'success',
-		data: {
-			tour,
+				const user = await User.deleteOne({ _id: id });
+
+				res.status(204).json({
+					status: 'success',
+					data: {
+						user,
+					},
+				});
+			} catch (err) {
+				res.status(400).json({
+					status: 'fail',
+					message: err,
+				});
+			}
 		},
-	});
-};
+	};
+}

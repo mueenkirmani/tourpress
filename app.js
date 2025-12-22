@@ -7,8 +7,8 @@ import userRouter from './routes/userRoutes.js';
 const app = express();
 
 app.use(express.json());
+app.set('query parser', 'extended');
 
-console.log('process', process.env.NODE_ENV);
 if (process.env.NODE_ENV === 'development') {
 	app.use(morgan('dev'));
 }

@@ -2,8 +2,6 @@ import mongoose from 'mongoose';
 import './configs/config.js';
 import app from './app.js';
 
-console.log(process.env.NODE_ENV);
-
 mongoose
 	.connect(process.env.DB_URL)
 	.then(() => {
@@ -14,6 +12,7 @@ mongoose
 	});
 
 const PORT = process.env.PORT || 8000;
+
 app.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`);
 });

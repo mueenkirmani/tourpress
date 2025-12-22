@@ -4,15 +4,31 @@ export default function tourController() {
 	return {
 		// Get all tours
 		getAllTours: async (req, res) => {
+			const queryObj = { ...req.query };
+			// console.log('🚀 ~ tourController ~ queryObj:', queryObj);
+
+			// const excludedFields = ['page', 'limit', 'sort', 'fields'];
+			// excludedFields.forEach((el) => delete queryObj[el]);
+
+			console.log('🚀 ~ tourController ~ queryObj:', req.query);
+			let queryStr = JSON.stringify(queryObj);
+			queryStr = queryStr.replace(/\b(gt|gte|lt|lte)\b/g, (match) => `$${match}`);
+
 			try {
 				const tours = await Tour.find();
+				queryStr = await Tour.find(queryStr);
+				console.log(queryStr);
+				// queryStr = await Tour.find({rating: {
+				// $gte: 4.5
+				// } });
+				// console.log('🚀 ~ tourController ~ queryStr:', queryStr);
 
 				// jsend format
 				res.status(200).json({
 					status: 'success', //success or fail or error
 					results: tours.length,
 					data: {
-						tours,
+						tours: queryStr,
 					},
 				});
 			} catch (err) {

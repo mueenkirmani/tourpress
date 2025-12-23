@@ -5,30 +5,43 @@ export default function tourController() {
 		// Get all tours
 		getAllTours: async (req, res) => {
 			const queryObj = { ...req.query };
-			// console.log('🚀 ~ tourController ~ queryObj:', queryObj);
+			// 1A) Filtering: rating: 5, rating[gte]=4.5, price[lte]=1500
 
-			// const excludedFields = ['page', 'limit', 'sort', 'fields'];
-			// excludedFields.forEach((el) => delete queryObj[el]);
+			// Removing fields from query object that are not used for filtering otherwise it will interfere with the query
+			const excludeFields = ['page', 'sort', 'limit', 'fields'];
+			excludeFields.forEach((el) => delete queryObj[el]);
 
-			console.log('🚀 ~ tourController ~ queryObj:', req.query);
 			let queryStr = JSON.stringify(queryObj);
+
 			queryStr = queryStr.replace(/\b(gt|gte|lt|lte)\b/g, (match) => `$${match}`);
 
 			try {
-				const tours = await Tour.find();
-				queryStr = await Tour.find(queryStr);
-				console.log(queryStr);
-				// queryStr = await Tour.find({rating: {
-				// $gte: 4.5
-				// } });
-				// console.log('🚀 ~ tourController ~ queryStr:', queryStr);
+				let query = Tour.find(JSON.parse(queryStr)).sort('name rating');
 
-				// jsend format
+				// second)
+				if (req.query.sort) {
+					// sort=price,rating,name but mongoose needs space separated string
+					const sortBy = req.query.sort.split(',').join(' ');
+					query = query.sort(sortBy);
+				} else {
+					query = query.sort('-createdAt');
+				}
+				if (req.query.fields) {
+					const limitFields = req.query.fields.split(',').join(' ');
+					console.log('🚀 ~ tourController ~ limitFields:', limitFields);
+					query = query.select(limitFields);
+				} else {
+					query = query.select('-__v');
+				}
+				if (req.query.page) {
+				}
+
+				const tours = await query;
 				res.status(200).json({
 					status: 'success', //success or fail or error
 					results: tours.length,
 					data: {
-						tours: queryStr,
+						tours: tours,
 					},
 				});
 			} catch (err) {

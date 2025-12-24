@@ -77,6 +77,7 @@ export default function tourController() {
 					},
 				});
 			} catch (err) {
+				console.log('err' , err)
 				res.status(400).json({
 					status: 'fail',
 					message: err,

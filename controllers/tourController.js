@@ -16,7 +16,7 @@ export default function tourController() {
 			queryStr = queryStr.replace(/\b(gt|gte|lt|lte)\b/g, (match) => `$${match}`);
 
 			try {
-				let query = Tour.find(JSON.parse(queryStr)).sort('name rating');
+				let query = Tour.find(JSON.parse(queryStr))
 
 				// second)
 				if (req.query.sort) {
@@ -33,19 +33,31 @@ export default function tourController() {
 				} else {
 					query = query.select('-__v');
 				}
-				if (req.query.page) {
-				}
+			
+				const page = req.query.page * 1 || 1
+				const limit = req.query.limit * 1 || 50
+				const skip = (page - 1) * limit
+				// skip().limit()
+				//  1-1 * 10 = 0,  2-1 * 10 = 10, 3-1 *10 = 20 
+				// query.find({}).sort('').select('')
+
+				query = query.skip(skip).limit(limit)
 
 				const tours = await query;
+
+				const total =await Tour.countDocuments()
+				
 				res.status(200).json({
 					status: 'success', //success or fail or error
 					results: tours.length,
+					total,
 					data: {
 						tours: tours,
 					},
 				});
 			} catch (err) {
-				res.status(404).json({
+				console.log(err)
+				res.status(400).json({
 					status: 'fail',
 					message: err,
 				});

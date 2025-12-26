@@ -16,7 +16,7 @@ export default function tourController() {
 			queryStr = queryStr.replace(/\b(gt|gte|lt|lte)\b/g, (match) => `$${match}`);
 
 			try {
-				let query = Tour.find(JSON.parse(queryStr))
+				let query = Tour.find(JSON.parse(queryStr));
 
 				// second)
 				if (req.query.sort) {
@@ -33,20 +33,20 @@ export default function tourController() {
 				} else {
 					query = query.select('-__v');
 				}
-			
-				const page = req.query.page * 1 || 1
-				const limit = req.query.limit * 1 || 50
-				const skip = (page - 1) * limit
+
+				const page = req.query.page * 1 || 1;
+				const limit = req.query.limit * 1 || 50;
+				const skip = (page - 1) * limit;
 				// skip().limit()
-				//  1-1 * 10 = 0,  2-1 * 10 = 10, 3-1 *10 = 20 
+				//  1-1 * 10 = 0,  2-1 * 10 = 10, 3-1 *10 = 20
 				// query.find({}).sort('').select('')
 
-				query = query.skip(skip).limit(limit)
+				query = query.skip(skip).limit(limit);
 
 				const tours = await query;
 
-				const total =await Tour.countDocuments()
-				
+				const total = await Tour.countDocuments();
+
 				res.status(200).json({
 					status: 'success', //success or fail or error
 					results: tours.length,
@@ -56,7 +56,7 @@ export default function tourController() {
 					},
 				});
 			} catch (err) {
-				console.log(err)
+				console.log(err);
 				res.status(400).json({
 					status: 'fail',
 					message: err,
@@ -66,9 +66,9 @@ export default function tourController() {
 		// Create a tour
 		createTour: async (req, res) => {
 			try {
-				const { name, price, rating, summary, duration } = req.body;
+				const { name, price, rating, summary, duration, privateTour } = req.body;
 
-				const newTour = await Tour.create({ name, price, rating, summary, duration });
+				const newTour = await Tour.create({ name, price, rating, summary, duration, privateTour });
 
 				res.status(201).json({
 					status: 'success',
@@ -77,7 +77,7 @@ export default function tourController() {
 					},
 				});
 			} catch (err) {
-				console.log('err' , err)
+				console.log('err', err);
 				res.status(400).json({
 					status: 'fail',
 					message: err,

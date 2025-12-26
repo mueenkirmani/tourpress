@@ -22,4 +22,12 @@ if (process.env.NODE_ENV === 'development') {
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 
+// unhandled routes
+app.all('{/*path}', (req, res) => {
+	res.status(404).json({
+		status: 'fail',
+		message: `Can't find this url on this server`,
+	});
+});
+
 export default app;

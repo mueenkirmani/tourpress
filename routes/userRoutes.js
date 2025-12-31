@@ -5,9 +5,10 @@ import authController from '../controllers/authController.js';
 const userRouter = express.Router();
 
 const { getAllUsers, createUser, getUser, updateUser, deleteUser } = userController();
-const { signup } = authController();
+const { signup, login } = authController();
 
 userRouter.route('/signup').post(signup);
+userRouter.route('/login').post(login);
 
 userRouter.route('/').get(getAllUsers).post(createUser);
 userRouter.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);

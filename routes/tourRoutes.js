@@ -3,6 +3,7 @@ import tourController from '../controllers/tourController.js';
 
 const tourRouter = express.Router();
 
+// Next step
 tourRouter.route('/').get(tourController().getAllTours).post(tourController().createTour);
 
 tourRouter

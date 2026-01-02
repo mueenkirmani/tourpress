@@ -2,42 +2,47 @@ import mongoose from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
 
-const userSchema = new mongoose.Schema({
-	name: {
-		type: String,
-		required: [true, 'Please provide a name'],
-	},
-	email: {
-		type: String,
-		required: [true, 'Please provide an email'],
-		unique: true,
-		lowercase: true,
-		validate: [validator.isEmail, 'Please provide a valid email'],
-	},
-	profilePhoto: String,
-	password: {
-		type: String,
-		required: [true, 'Please provide a password'],
-		min: 8,
-		select: false,
-	},
-	passwordConfirm: {
-		type: String,
-		required: [true, 'Please provide confirm password'],
-		validate: {
-			validator: function (curVal) {
-				return curVal === this.password;
+const userSchema = new mongoose.Schema(
+	{
+		name: {
+			type: String,
+			required: [true, 'Please provide a name'],
+		},
+		email: {
+			type: String,
+			required: [true, 'Please provide an email'],
+			unique: true,
+			lowercase: true,
+			validate: [validator.isEmail, 'Please provide a valid email'],
+		},
+		profilePhoto: String,
+		password: {
+			type: String,
+			required: [true, 'Please provide a password'],
+			min: 8,
+			select: false,
+		},
+		passwordConfirm: {
+			type: String,
+			required: [true, 'Please provide confirm password'],
+			// save and create only
+			validate: {
+				validator: function (curVal) {
+					return curVal === this.password;
+				},
+				message: 'Passwords do not match!',
 			},
-			message: 'Passwords do not match!',
+		},
+		passwordChangedAt: Date,
+		// if jwt token is issued before passwordChange
+		role: {
+			type: String,
+			enum: ['admin', 'user'],
+			default: 'user',
 		},
 	},
-	passwordChangeAt: Date,
-	role: {
-		type: String,
-		enum: ['admin', 'user'],
-		default: 'user',
-	},
-});
+	{ timestamps: true },
+);
 
 userSchema.pre('save', async function (next) {
 	if (!this.isModified('password')) return next();
@@ -51,10 +56,21 @@ userSchema.pre('save', async function (next) {
 // Instance method
 // Verify password
 
-userSchema.methods.correctPassword = async function (candidatePassword, userPassword) {
+userSchema.methods.correctPassword = async function (candidatePassword) {
 	// candidate password = req.body.password
 	// user password  = hashed password stored
-	return await bcrypt.compare(candidatePassword, userPassword);
+	return await bcrypt.compare(candidatePassword, this.password);
+};
+
+userSchema.methods.changedPasswordAfter = function (JWTTimeStamp) {
+	if (this.passwordChangedAt) {
+		const changedTimeStamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
+		// if return true === password is changed
+		return JWTTimeStamp < changedTimeStamp;
+		// else if return false password is not changed
+	}
+
+	return false;
 };
 
 const User = mongoose.model('User', userSchema);

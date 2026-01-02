@@ -5,12 +5,12 @@ import authController from '../controllers/authController.js';
 const userRouter = express.Router();
 
 const { getAllUsers, createUser, getUser, updateUser, deleteUser } = userController();
-const { signup, login } = authController();
+const { signup, login, protect } = authController();
 
 userRouter.route('/signup').post(signup);
 userRouter.route('/login').post(login);
 
-userRouter.route('/').get(getAllUsers).post(createUser);
-userRouter.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);
+userRouter.route('/').get(protect, getAllUsers).post(protect, createUser);
+userRouter.route('/:id').get(protect, getUser).patch(protect, updateUser).delete(protect, deleteUser);
 
 export default userRouter;

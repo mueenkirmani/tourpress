@@ -37,7 +37,7 @@ const userSchema = new mongoose.Schema(
 		// if jwt token is issued before passwordChange
 		role: {
 			type: String,
-			enum: ['admin', 'user'],
+			enum: ['admin', 'editor', 'user'],
 			default: 'user',
 		},
 	},

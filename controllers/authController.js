@@ -78,5 +78,15 @@ export default function authController() {
 			req.user = currentUser;
 			next();
 		}),
+		restrictTo: (...roles) => {
+			return (req, res, next) => {
+				console.log('user in retritctTo middleware', req.user);
+				console.log(roles);
+				if (!roles.includes(req.user.role)) {
+					next(new AppError('You are not authorized to perform this action', 403));
+				}
+				next();
+			};
+		},
 	};
 }

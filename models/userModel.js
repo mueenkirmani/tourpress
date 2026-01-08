@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import mongoose from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
@@ -34,6 +35,8 @@ const userSchema = new mongoose.Schema(
 			},
 		},
 		passwordChangedAt: Date,
+		passwordResetToken: String,
+		passwordResetExpires: Date,
 		// if jwt token is issued before passwordChange
 		role: {
 			type: String,
@@ -44,8 +47,8 @@ const userSchema = new mongoose.Schema(
 	{ timestamps: true },
 );
 
-userSchema.pre('save', async function (next) {
-	if (!this.isModified('password')) return next();
+userSchema.pre('save', async function () {
+	if (!this.isModified('password')) return;
 
 	//hash(salt + password) = hash(output + salt) = hash(output + salt) == output 2^12
 	this.password = await bcrypt.hash(this.password, 12);
@@ -71,6 +74,16 @@ userSchema.methods.changedPasswordAfter = function (JWTTimeStamp) {
 	}
 
 	return false;
+};
+
+userSchema.methods.createPasswordResetToken = function () {
+	const resetToken = crypto.randomBytes(32).toString('hex');
+	// f1237bae7de567890 - temporary password
+
+	this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+	this.passwordResetExpires = Date.now() * 10 * 60 * 1000; //Expires in 10 mins
+
+	return resetToken;
 };
 
 const User = mongoose.model('User', userSchema);

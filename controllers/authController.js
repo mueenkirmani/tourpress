@@ -3,6 +3,7 @@ import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
 import { promisify } from 'util';
 import jwt from 'jsonwebtoken';
+import { sendEmail } from '../utils/email.js';
 
 export default function authController() {
 	return {
@@ -88,5 +89,36 @@ export default function authController() {
 				next();
 			};
 		},
+		forgotPassword: catchAsync(async (req, res, next) => {
+			const { email } = req.body;
+			const user = await User.findOne({ email });
+
+			if (!user) return next(new AppError('No user found with that email', 404));
+
+			//generate a reset token
+			const resetToken = user.createPasswordResetToken();
+			await user.save({ validateBeforeSave: false });
+
+			//Send email
+			try {
+				await sendEmail({
+					email: user.email,
+					subject: 'You password reset token',
+					text: `Forgot password? Here is the link to reset your password http://localhost:5173/reset-password?token=${resetToken}`,
+				});
+				res.status(200).json({
+					status: 'success',
+					message: 'Password reset link successfully sent on your email, Please check your inbox',
+				});
+			} catch (e) {
+				console.log('🚀 ~ e:', e);
+				user.passwordResetToken = undefined;
+				user.passwordResetExpires = undefined;
+				await user.save({ validateBeforeSave: false });
+
+				return next(new AppError('There was some error sending email', 500));
+			}
+		}),
+		// resetPassword: catchAsync(async (req, res, next) => {}),
 	};
 }

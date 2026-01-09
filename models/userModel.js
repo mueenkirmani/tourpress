@@ -26,7 +26,8 @@ const userSchema = new mongoose.Schema(
 		passwordConfirm: {
 			type: String,
 			required: [true, 'Please provide confirm password'],
-			// save and create only
+			// save and create only,
+			// doesn't work on update
 			validate: {
 				validator: function (curVal) {
 					return curVal === this.password;
@@ -81,7 +82,7 @@ userSchema.methods.createPasswordResetToken = function () {
 	// f1237bae7de567890 - temporary password
 
 	this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-	this.passwordResetExpires = Date.now() * 10 * 60 * 1000; //Expires in 10 mins
+	this.passwordResetExpires = Date.now() + 10 * 60 * 1000; //Expires in 10 mins
 
 	return resetToken;
 };

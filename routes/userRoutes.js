@@ -10,7 +10,7 @@ const { signup, login, protect, restrictTo, forgotPassword, resetPassword } = au
 userRouter.route('/signup').post(signup);
 userRouter.route('/login').post(login);
 userRouter.route('/forgot-password').post(forgotPassword);
-// userRouter.route('/reset-password').post(resetPassword);
+userRouter.route('/reset-password/:token').patch(resetPassword);
 
 userRouter.use(protect);
 

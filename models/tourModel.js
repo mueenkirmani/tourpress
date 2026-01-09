@@ -52,30 +52,27 @@ const tourSchema = new mongoose.Schema(
 // DOCUMENT MIDDLEWARE: runs before .save() and .create()
 // save(), create().
 // ❌ won't work on insertMany
-tourSchema.pre('save', function (next) {
+tourSchema.pre('save', function () {
 	this.slug = slugify(this.name, { lower: true });
-	// next()
 });
 
 // Post save hook (after the document is saved to the database)
-// tourSchema.post('save', function (doc, next) {
+// tourSchema.post('save', function (doc,) {
 // 	console.log('Post save hook ran successfully');
 // 	next();
 // });
 
 // QUERY MIDDLEWARE
 // tourSchema.pre('find', function () {
-tourSchema.pre(/^find/, function (next) {
+tourSchema.pre(/^find/, function () {
 	this.find({ privateTour: { $ne: true } });
 	//12:00:12
 	this.start = Date.now();
-	// next();
 });
 
-tourSchema.post(/^find/, function (docs, next) {
+tourSchema.post(/^find/, function (docs) {
 	// 12:00:15
 	console.log(`Query took ${Date.now() - this.start} milliseconds`);
-	next();
 });
 
 // post

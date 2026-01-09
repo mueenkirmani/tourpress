@@ -1,9 +1,17 @@
+import crypto from 'crypto';
 import User from '../models/userModel.js';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
 import { promisify } from 'util';
 import jwt from 'jsonwebtoken';
 import { sendEmail } from '../utils/email.js';
+
+const signJWT = (data) => {
+	const token = jwt.sign(data, process.env.JWT_SECRET, {
+		expiresIn: process.env.JWT_EXPIRES_IN,
+	});
+	return token;
+};
 
 export default function authController() {
 	return {
@@ -40,9 +48,7 @@ export default function authController() {
 			}
 
 			//3. if email and password correct, send token to client
-			const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, {
-				expiresIn: process.env.JWT_EXPIRES_IN,
-			});
+			const token = signJWT({ id: user._id, email: user.email });
 
 			// 4. Send response
 			res.status(200).json({
@@ -119,6 +125,32 @@ export default function authController() {
 				return next(new AppError('There was some error sending email', 500));
 			}
 		}),
-		// resetPassword: catchAsync(async (req, res, next) => {}),
+		resetPassword: catchAsync(async (req, res, next) => {
+			const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+			const user = await User.findOne({
+				passwordResetToken: hashedToken,
+				passwordResetExpires: { $gt: Date.now() },
+			});
+
+			if (!user) return next(new AppError('Token is invalid or has expired', 400));
+
+			const { password, passwordConfirm } = req.body;
+
+			user.password = password;
+			user.passwordConfirm = passwordConfirm;
+			user.passwordResetToken = undefined;
+			user.passwordResetExpires = undefined;
+			await user.save();
+
+			const token = signJWT({ id: user._id, email: user.email });
+
+			res.status(201).json({
+				message: 'Password reset successfully',
+				data: {
+					user,
+					token,
+				},
+			});
+		}),
 	};
 }

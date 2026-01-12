@@ -1,6 +1,7 @@
 import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 
 import tourRouter from './routes/tourRoutes.js';
 import userRouter from './routes/userRoutes.js';
@@ -24,9 +25,12 @@ if (process.env.NODE_ENV === 'development') {
 
 app.use(
 	cors({
-		origin: 'http://localhost:5173',
+		origin: 'https://localhost:5173',
+		credentials: true,
 	}),
 );
+app.use(cookieParser());
+
 // routes
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);

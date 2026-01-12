@@ -13,6 +13,25 @@ const signJWT = (data) => {
 	return token;
 };
 
+const signAndSendToken = (user, statusCode, res) => {
+	const token = signJWT({ id: user._id, email: user.email });
+	const cookie_options = {
+		expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
+		httpOnly: true,
+		secure: true,
+		sameSite: 'None',
+	};
+	// if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+	res.cookie('auth_token', token, cookie_options);
+	user.password = undefined;
+	res.status(statusCode).json({
+		status: 'success',
+		data: {
+			user,
+		},
+	});
+};
+
 export default function authController() {
 	return {
 		signup: catchAsync(async (req, res, next) => {
@@ -48,23 +67,38 @@ export default function authController() {
 			}
 
 			//3. if email and password correct, send token to client
-			const token = signJWT({ id: user._id, email: user.email });
 
+			signAndSendToken(user, 200, res);
+			// const token = signJWT({ id: user._id, email: user.email });
+
+			// const cookie_options = {
+			// 	expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
+			// 	httpOnly: true,
+			// 	secure: true,
+			// 	sameSite: 'None',
+			// };
+
+			// if (process.env.NODE_ENV === 'production') cookie_options.secure = true;
+
+			// res.cookie('auth_token', token, cookie_options);
 			// 4. Send response
-			res.status(200).json({
-				status: 'success',
-				data: {
-					user,
-					token,
-				},
-			});
+			// res.status(200).json({
+			// 	status: 'success',
+			// 	data: {
+			// 		user,
+			// 		token,
+			// 	},
+			// });
 		}),
 
 		protect: catchAsync(async (req, res, next) => {
 			let token;
+
 			// Bearer tokenValue
 			if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
 				token = req.headers.authorization.split(' ')[1];
+			} else if (req.cookies.auth_token) {
+				token = req.cookies.auth_token;
 			}
 
 			if (!token) {
@@ -142,15 +176,7 @@ export default function authController() {
 			user.passwordResetExpires = undefined;
 			await user.save();
 
-			const token = signJWT({ id: user._id, email: user.email });
-
-			res.status(201).json({
-				message: 'Password reset successfully',
-				data: {
-					user,
-					token,
-				},
-			});
+			signAndSendToken(user, 200, res);
 		}),
 	};
 }

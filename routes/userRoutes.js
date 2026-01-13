@@ -5,10 +5,11 @@ import authController from '../controllers/authController.js';
 const userRouter = express.Router();
 
 const { getAllUsers, createUser, getUser, updateUser, deleteUser, getMyProfile } = userController();
-const { signup, login, protect, restrictTo, forgotPassword, resetPassword } = authController();
+const { signup, login, logout, protect, restrictTo, forgotPassword, resetPassword } = authController();
 
 userRouter.route('/signup').post(signup);
 userRouter.route('/login').post(login);
+userRouter.route('/logout').get(logout);
 userRouter.route('/forgot-password').post(forgotPassword);
 userRouter.route('/reset-password/:token').patch(resetPassword);
 

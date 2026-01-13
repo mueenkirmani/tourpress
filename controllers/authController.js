@@ -91,6 +91,24 @@ export default function authController() {
 			// });
 		}),
 
+		logout: catchAsync(async (req, res, next) => {
+			// res.clearCookie('auth_token', {
+			// 	httpOnly: true,
+			// 	sameSite: 'None',
+			// 	secure: true,
+			// });
+			res.cookie('auth_token', 'loggedOut', {
+				expires: new Date(Date.now() + 10 * 1000),
+				httpOnly: true,
+				sameSite: 'None',
+				secure: true,
+			});
+
+			res.status(200).json({
+				status: 'success',
+				message: 'User logged out successfully',
+			});
+		}),
 		protect: catchAsync(async (req, res, next) => {
 			let token;
 

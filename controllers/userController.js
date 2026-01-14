@@ -25,9 +25,9 @@ export default function userController() {
 		// Create a User
 		createUser: async (req, res) => {
 			try {
-				const { name, email, password } = req.body;
+				const { name, email, password, passwordConfirm } = req.body;
 
-				const newUser = await User.create({ name, email, password });
+				const newUser = await User.create({ name, email, password, passwordConfirm });
 
 				res.status(201).json({
 					status: 'success',
